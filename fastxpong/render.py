@@ -45,7 +45,7 @@ async def get_ball():
     }
 
 
-async def procucer(q, event, getter, args):
+async def producer(q, event, getter, args):
     while True:
         await event.wait()
         await q.put(await getter(*args))
@@ -54,7 +54,7 @@ async def procucer(q, event, getter, args):
 async def render_state(request):
     q = asyncio.Queue(2)
     producers = [
-        asyncio.create_task(procucer(q, event, getter, args)) for event, getter, args in [
+        asyncio.create_task(producer(q, event, getter, args)) for event, getter, args in [
             (ball_moved, get_ball, ()),
             (bat_moved["left"], get_bat, ("left",)),
             (bat_moved["right"], get_bat, ("right",)),
