@@ -1,16 +1,13 @@
-<h2>Total score: {{ right.score + left.score }}</h2>
-
+<h2 class="solid-bg">Total score: {{ right.score + left.score }}</h2>
 
 {% if game_running %}
-<h1 hx-indicator="#scoreboard">
-    {{ left.score }}
-    {% if ball.velocity.0 < 0 %}<-{% else %}->{% endif %}
-    {{ right.score }}
+<h1>
+    {% if ball.velocity.0 < 0 %}<{% else %}>{% endif %}
 </h1>
 </p>
 {% else %}
-    <h1>Game paused</h1>
-    <div class="howto">
+    <h1 class="solid-bg">Game paused</h1>
+    <div class="howto solid-bg">
         <h3>How to play:</h3>
         <p>
             <ul>
