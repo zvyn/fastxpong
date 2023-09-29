@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>HTMX Based FastAPI Pong</title>
+    <meta charset="UTF-8">
+    <style>
+        html {
+            background-color: #333;
+            overflow: hidden;
+        }
+
+        .bat {
+            position: absolute;
+            background-color: #eee;
+            width: 5px;
+            transition: all linear 200ms;
+        }
+
+        #bat_left {
+            left: 1%;
+            height: {{ left.len }}%;
+        }
+
+        #bat_right {
+            left: 99%;
+            height: {{ right.len }}%;
+        }
+
+        .ball {
+            position: absolute;
+            width: 1em;
+            height: 1em;
+            border-radius: 50%;
+            background-color: white;
+            transition: all linear 105ms;
+            border: 1px solid black;
+            z-index: 100;
+        }
+
+        .scoreboard {
+            text-align: center;
+            margin-left: auto;
+            margin-right: auto;
+            color: #eee;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .howto > ul {
+            list-style: none;
+            padding-inline-start: 0;
+        }
+    </style>
+    <script src={{ url_for("static", path="htmx.min.js") }}></script>
+    <script src="{{ url_for("static", path="sse.js") }}"></script>
+</head>
+<body>
+    <div
+        hx-vals='js:{last_key: event && event.key}'
+        hx-trigger="
+            keyup[key=='p'] from:body,
+            keydown[key=='{{ right.up_key }}'] from:body,
+            keydown[key=='{{ right.down_key }}'] from:body,
+            keydown[key=='{{ left.up_key }}'] from:body,
+            keydown[key=='{{ left.down_key}}'] from:body,
+        "
+        hx-post="{{ url_for("keypress") }}"
+        hx-swap="none"
+    >
+    </div>
+    <div
+        class="game"
+        hx-ext="sse"
+        sse-connect="{{ url_for("get_game_sse") }}"
+    >
+        <div
+            class="scoreboard"
+            id="scoreboard"
+            sse-swap="scoreboard"
+        >
+            {% include 'score.jinja2' %}
+        </div>
+        <div sse-swap="bat_left">
+            {% with player="left", pos=left.pos %}
+                {% include 'bat.jinja2' %}
+            {% endwith %}
+        </div>
+        <div sse-swap="bat_right">
+            {% with player="right", pos=right.pos %}
+                {% include 'bat.jinja2' %}
+            {% endwith %}
+        </div>
+
+        <div sse-swap="ball">
+            {% include 'ball.jinja2' %}
+        </div>
+    </div>
+</body>
+</html>

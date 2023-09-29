@@ -1,0 +1,26 @@
+<h2>Total score: {{ right.score + left.score }}</h2>
+
+
+{% if game_running %}
+<h1 hx-indicator="#scoreboard">
+    {{ left.score }}
+    {% if ball.velocity.0 < 0 %}<-{% else %}->{% endif %}
+    {{ right.score }}
+</h1>
+</p>
+{% else %}
+    <h1>Game paused</h1>
+    <div class="howto">
+        <h3>How to play:</h3>
+        <p>
+            <ul>
+                <li>P: (Un)pause game</li>
+                <li>{{ left.up_key.upper() }}: Move left bat up</li>
+                <li>{{ left.down_key.upper() }}: Move left bat down</li>
+                <li>{{ right.up_key.upper() }}: Move right bat up</li>
+                <li>{{ right.down_key.upper() }}: Move right bat down</li>
+            </ul>
+        </p>
+        <p>The goal is to hit the ball as often as possible</p>
+    </div>
+{% endif %}
