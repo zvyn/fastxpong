@@ -133,11 +133,10 @@ def process_keypress(key):
 
 def process_click(x: float, y: float):
     player = "right" if x > 0.5 else "left"
-    if y < 0.5:
-        pos = state[player]["pos"]
+    pos = state[player]["pos"]
+    if y * 100 < pos:
         state[player]["pos"] = max(0, pos - 5)
     else:
-        pos = state[player]["pos"]
         state[player]["pos"] = min(
             100 - state[player]["len"], pos + 5
         )
