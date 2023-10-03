@@ -133,6 +133,7 @@ def process_keypress(key):
 
 def process_click(x: float, y: float):
     game_running.set()
+    trigger(scoreboard_changed)
     player = "right" if x > 0.5 else "left"
     pos = state[player]["pos"]
     if y * 100 < pos:
