@@ -46,6 +46,7 @@ async def get_ball():
 
 
 async def producer(q, event, getter, args):
+    await q.put(await getter(*args))
     while True:
         await event.wait()
         await q.put(await getter(*args))

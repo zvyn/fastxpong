@@ -14,7 +14,12 @@ class BallDict(TypedDict):
     velocity: tuple[float, float]
 
 
+class SessionDict(TypedDict):
+    count: int
+
+
 class StateDict(TypedDict):
     left: BatDict
     right: BatDict
     ball: BallDict
+    session: SessionDict

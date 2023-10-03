@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>HTMX Based FastAPI Pong</title>
+    <title>Hyperpong</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/svg+xml" href="{{ url_for("static", path="favicon.svg") }}">
@@ -19,32 +19,31 @@
         .bat {
             position: absolute;
             background-color: #eee;
-            width: 1%;
+            width: 1vh;
             transition: all linear 200ms;
-            border: 1em solid #333;
+            border-top: 1vh solid #333;
+            border-bottom: 1vh solid #333;
             z-index: 100;
         }
 
         #bat_left {
             left: 0;
             height: {{ left.len }}%;
-            border-right: none;
         }
 
         #bat_right {
             right: 0;
             height: {{ right.len }}%;
-            border-left: none;
         }
 
         .ball {
             position: absolute;
-            width: 1em;
-            height: 1em;
+            width: 1vh;
+            height: 1vh;
             border-radius: 50%;
             background-color: white;
             transition: all linear 105ms;
-            z-index: 101;
+            z-index: 99;
         }
 
         .scoreboard {
@@ -53,6 +52,7 @@
             margin-right: auto;
             color: #eee;
             font-family: 'Courier New', Courier, monospace;
+            user-select: none;
         }
 
         .howto > ul {
@@ -69,7 +69,7 @@
 </head>
 <body>
     <div
-        hx-vals='js:{last_key: event && event.key}'
+        hx-vals='js:{last_key: event.key}'
         hx-trigger="
             keyup[key=='p'] from:body,
             keydown[key=='{{ right.up_key }}'] from:body,
@@ -78,6 +78,13 @@
             keydown[key=='{{ left.down_key}}'] from:body,
         "
         hx-post="{{ url_for("keypress") }}"
+        hx-swap="none"
+    >
+    </div>
+    <div
+        hx-vals='js:{x: event.pageX / window.innerWidth, y: event.pageY / window.innerHeight} '
+        hx-post="{{ url_for("click") }}"
+        hx-trigger="click from:window"
         hx-swap="none"
     >
     </div>

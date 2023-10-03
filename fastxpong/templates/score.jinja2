@@ -1,8 +1,21 @@
 <h2 class="solid-bg">Total score: {{ right.score + left.score }}</h2>
+<h3 class="solid-bg">Connected players: {{ session.count }}</h3>
 
 {% if game_running %}
-<h1>
-    {% if ball.velocity.0 < 0 %}<{% else %}>{% endif %}
+<h1 class="solid-bg">
+    {% if ball.velocity.0 < 0 %}
+        {% if ball.velocity.1 < 0 %}
+            ↖
+        {% else %}
+            ↙
+        {% endif %}
+    {% else %}
+        {% if ball.velocity.1 < 0 %}
+            ↗
+        {% else %}
+            ↘
+        {% endif %}
+    {% endif %}
 </h1>
 </p>
 {% else %}

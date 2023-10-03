@@ -1,13 +1,13 @@
 from contextlib import asynccontextmanager
 import asyncio
+from typing import cast
 
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import HTMLResponse
 from sse_starlette.sse import EventSourceResponse
 
-from .game import game_loop, process_keypress, state, game_running
+from .game import game_loop, process_click, process_keypress, state, scoreboard_changed, trigger
 from .render import render_state, templates, staticfiles
-
 
 
 @asynccontextmanager
@@ -35,6 +35,26 @@ async def keypress(request: Request):
     return Response(status_code=204)
 
 
+@app.post("/click", response_class=Response)
+async def click(request: Request):
+    form_data = await request.form()
+    x = float(cast(str, form_data["x"]))
+    y = float(cast(str, form_data["y"]))
+    process_click(x, y)
+    return Response(status_code=204)
+
+
+async def session_counter(async_generator):
+    state["session"]["count"] += 1
+    try:
+        yield await anext(async_generator)
+        async for value in async_generator:
+            yield value
+    finally:
+        state["session"]["count"] -= 1
+        trigger(scoreboard_changed)
+
+
 @app.get("/game-sse")
 async def get_game_sse(request: Request) -> EventSourceResponse:
-    return EventSourceResponse(render_state(request))
+    return EventSourceResponse(session_counter(render_state(request)))

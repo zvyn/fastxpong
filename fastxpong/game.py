@@ -32,7 +32,15 @@ state: StateDict = {
         "position": (50, 50),
         "velocity": (1, .4),
     },
+    "session": {
+        "count": 0,
+    }
 }
+
+
+def trigger(event: asyncio.Event):
+    event.set()
+    event.clear()
 
 
 async def reset_score():
@@ -43,8 +51,7 @@ async def reset_score():
     state["ball"]["position"] = 50, 50
     state["ball"]["velocity"] = 1, .4
     await game_running.wait()
-    scoreboard_changed.set()
-    scoreboard_changed.clear()
+    trigger(scoreboard_changed)
 
 
 async def game_loop():
@@ -59,23 +66,23 @@ async def game_loop():
         reset = False
 
         if x <= 0:
-            x = 1
             vx *= -1
             if state["left"]["pos"] + state["left"]["len"] >= y >= state["left"]["pos"]:
+                x = 1
                 state["left"]["score"] += 1
             else:
+                x = 0
                 reset = True
-            scoreboard_changed.set()
-            scoreboard_changed.clear()
+            trigger(scoreboard_changed)
         elif x >= 99:
-            x = 98
             vx *= -1
             if state["right"]["pos"] + state["right"]["len"] >= y >= state["right"]["pos"]:
+                x = 99
                 state["right"]["score"] += 1
             else:
+                x = 100
                 reset = True
-            scoreboard_changed.set()
-            scoreboard_changed.clear()
+            trigger(scoreboard_changed)
 
         if reset:
             await reset_score()
@@ -102,8 +109,7 @@ def process_keypress(key):
             game_running.clear()
         else:
             game_running.set()
-        scoreboard_changed.set()
-        scoreboard_changed.clear()
+        trigger(scoreboard_changed)
         return
     elif not game_running.is_set():
         return
@@ -121,6 +127,18 @@ def process_keypress(key):
             )
             moved = True
         if moved:
-            bat_moved[player].set()
-            bat_moved[player].clear()
+            trigger(bat_moved[player])
             return
+
+
+def process_click(x: float, y: float):
+    player = "right" if x > 0.5 else "left"
+    if y < 0.5:
+        pos = state[player]["pos"]
+        state[player]["pos"] = max(0, pos - 5)
+    else:
+        pos = state[player]["pos"]
+        state[player]["pos"] = min(
+            100 - state[player]["len"], pos + 5
+        )
+    trigger(bat_moved[player])
