@@ -5,11 +5,11 @@ from fastapi.staticfiles import StaticFiles
 
 from fastapi.templating import Jinja2Templates
 
-from .game import state, game_running, bat_moved, ball_moved, scoreboard_changed
+from .game import state, bat_moved, ball_moved, scoreboard_changed
 
 
 base_dir = path.dirname(__file__)
-templates = Jinja2Templates(directory=f"{base_dir}/templates")
+templates = Jinja2Templates(directory=f"{base_dir}/templates", enable_async=True)
 staticfiles = StaticFiles(directory=f"{base_dir}/static")
 
 
@@ -17,9 +17,7 @@ async def get_bat(player: str):
     context = {"player": player, "pos": state[player]["pos"]}
     return {
         "event": f"bat_{player}",
-        "data": (
-            templates.get_template("bat.jinja2").render(context)
-        )
+        "data": await templates.get_template("bat.jinja2").render_async(context),
     }
 
 
@@ -27,21 +25,18 @@ async def get_scoreboard():
     return {
         "event": "scoreboard",
         "data": (
-            templates.get_template("score.jinja2").render(
-                game_running=game_running.is_set(),
+            await templates.get_template("score.jinja2").render_async(
                 timestamp=datetime.now().isoformat(),
-                **state
+                **state,
             )
-        )
+        ),
     }
 
 
 async def get_ball():
     return {
         "event": "ball",
-        "data": (
-            templates.get_template("ball.jinja2").render(state)
-        )
+        "data": (await templates.get_template("ball.jinja2").render_async(state)),
     }
 
 
@@ -53,9 +48,10 @@ async def producer(q, event, getter, args):
 
 
 async def render_state(request):
-    q = asyncio.Queue(2)
+    q = asyncio.Queue(4)
     producers = [
-        asyncio.create_task(producer(q, event, getter, args)) for event, getter, args in [
+        asyncio.create_task(producer(q, event, getter, args))
+        for event, getter, args in [
             (ball_moved, get_ball, ()),
             (bat_moved["left"], get_bat, ("left",)),
             (bat_moved["right"], get_bat, ("right",)),

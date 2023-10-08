@@ -1,3 +1,4 @@
+from asyncio import Event
 from typing import TypedDict
 
 
@@ -19,6 +20,7 @@ class SessionDict(TypedDict):
 
 
 class StateDict(TypedDict):
+    running: Event
     left: BatDict
     right: BatDict
     ball: BallDict

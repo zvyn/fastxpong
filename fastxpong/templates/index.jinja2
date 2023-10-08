@@ -14,36 +14,31 @@
 
         body {
             background: url("{{ url_for("static", path="bg.svg")}}") #333;
+            font-family: 'Courier New', Courier, monospace;
         }
 
-        .bat {
-            position: absolute;
-            background-color: #eee;
-            width: 1vh;
-            transition: all linear 200ms;
-            border-top: 1vh solid #333;
-            border-bottom: 1vh solid #333;
+        .bat, .ball {
+            position: fixed;
+            width: 1vw;
+            background-color: white;
+            box-shadow: 0 0 1vw black;
             z-index: 100;
+            transition: all linear 100ms;
         }
 
         #bat_left {
             left: 0;
-            height: {{ left.len }}%;
+            height: {{ left.len }}vh;
         }
 
         #bat_right {
             right: 0;
-            height: {{ right.len }}%;
+            height: {{ right.len }}vh;
         }
 
         .ball {
-            position: absolute;
-            width: 1vh;
-            height: 1vh;
+            height: 1vw;
             border-radius: 50%;
-            background-color: white;
-            transition: all linear 105ms;
-            z-index: 99;
         }
 
         .scoreboard {
@@ -51,8 +46,46 @@
             margin-left: auto;
             margin-right: auto;
             color: #eee;
-            font-family: 'Courier New', Courier, monospace;
             user-select: none;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .scoreboard > h3 {
+            margin-top: 0;
+        }
+
+        .fade-in {
+            animation-name: fadeIn;
+            animation-timing-function: linear;
+            animation-duration: 0.5s;
+        }
+
+        @keyframes fadeIn {
+            0% {
+                transform: scale(1, 0);
+                color: #333;
+            }
+            20% {
+                transform: scale(1, 1);
+                color: #333;
+            }
+            100% {
+                transform: none;
+                color: #eee;
+            }
+        }
+
+        .game-paused {
+            background-color: #333e;
+            color: #eee;
+            padding: 0 1vw 0 1vw;
+            border-top: dashed 1px #eee;
+            border-bottom: dashed 1px #eee;
+            margin: auto;
+            width: fit-content;
+            z-index: 101;
+            position: relative;
         }
 
         .howto > ul {
@@ -64,12 +97,10 @@
             background: #333;
         }
     </style>
-    <script src={{ url_for("static", path="htmx.min.js") }}></script>
-    <script src="{{ url_for("static", path="sse.js") }}"></script>
 </head>
 <body>
     <div
-        hx-vals='js:{last_key: event.key}'
+        hx-vals='js:{last_key: event && event.key}'
         hx-trigger="
             keyup[key=='p'] from:body,
             keydown[key=='{{ right.up_key }}'] from:body,
@@ -82,9 +113,9 @@
     >
     </div>
     <div
-        hx-vals='js:{x: event.pageX / window.innerWidth, y: event.pageY / window.innerHeight} '
+        hx-vals='js:{x: event && (event.pageX / window.innerWidth), y: event && (event.pageY / window.innerHeight)}'
         hx-post="{{ url_for("click") }}"
-        hx-trigger="click from:window"
+        hx-trigger="click from:body"
         hx-swap="none"
     >
     </div>
@@ -98,7 +129,6 @@
             id="scoreboard"
             sse-swap="scoreboard"
         >
-            {% include 'score.jinja2' %}
         </div>
 
         <div sse-swap="bat_left">
@@ -116,5 +146,8 @@
             {% include 'ball.jinja2' %}
         </div>
     </div>
+    {% include 'forkme.jinja2' %}
+    <script src={{ url_for("static", path="htmx.min.js") }}></script>
+    <script src="{{ url_for("static", path="sse.js") }}"></script>
 </body>
 </html>

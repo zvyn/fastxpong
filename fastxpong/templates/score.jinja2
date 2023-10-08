@@ -1,8 +1,5 @@
-<h2 class="solid-bg">Total score: {{ right.score + left.score }}</h2>
-<h3 class="solid-bg">Connected players: {{ session.count }}</h3>
-
-{% if game_running %}
-<h1 class="solid-bg">
+<h3 class="solid-bg">Score: {{ right.score + left.score }} Players: {{ session.count }}</h3>
+<h1>
     {% if ball.velocity.0 < 0 %}
         {% if ball.velocity.1 < 0 %}
             ↖
@@ -17,10 +14,10 @@
         {% endif %}
     {% endif %}
 </h1>
-</p>
-{% else %}
-    <h1 class="solid-bg">Game paused</h1>
-    <div class="howto solid-bg">
+{% if not running.is_set() %}
+<div class="fade-in game-paused">
+    <h1>Game paused</h1>
+    <div class="howto">
         <h3>How to play:</h3>
         <p>
             <ul>
@@ -31,6 +28,6 @@
                 <li>{{ right.down_key.upper() }}: Move right bat down</li>
             </ul>
         </p>
-        <p>The goal is to hit the ball as often as possible</p>
     </div>
+</div>
 {% endif %}

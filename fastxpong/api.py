@@ -6,7 +6,14 @@ from fastapi import FastAPI, Request, Response
 from fastapi.responses import HTMLResponse
 from sse_starlette.sse import EventSourceResponse
 
-from .game import game_loop, process_click, process_keypress, state, scoreboard_changed, trigger
+from .game import (
+    game_loop,
+    process_click,
+    process_keypress,
+    state,
+    scoreboard_changed,
+    trigger,
+)
 from .render import render_state, templates, staticfiles
 
 
@@ -23,24 +30,31 @@ app.mount("/static", staticfiles, name="static")
 
 @app.get("/", response_class=HTMLResponse)
 async def root_page(request: Request):
-    return templates.TemplateResponse(
-        "index.jinja2", {"request": request, **state}
+    return HTMLResponse(
+        await templates.get_template("index.jinja2").render_async(
+            {"request": request, **state}
+        ),
     )
 
 
 @app.post("/keypress", response_class=Response)
 async def keypress(request: Request):
-    key = (await request.form())["last_key"]
-    process_keypress(key)
+    key = (await request.form()).get("last_key")
+    if key:
+        process_keypress(key)
     return Response(status_code=204)
 
 
 @app.post("/click", response_class=Response)
 async def click(request: Request):
     form_data = await request.form()
-    x = float(cast(str, form_data["x"]))
-    y = float(cast(str, form_data["y"]))
-    process_click(x, y)
+    try:
+        x = float(cast(str, form_data["x"]))
+        y = float(cast(str, form_data["y"]))
+    except (KeyError, ValueError):
+        pass
+    else:
+        process_click(x, y)
     return Response(status_code=204)
 
 
