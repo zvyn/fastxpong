@@ -1,19 +1,12 @@
 import asyncio
-from os import path
 from datetime import datetime
-from fastapi.staticfiles import StaticFiles
-
-from fastapi.templating import Jinja2Templates
+from typing import Literal
 
 from .game import state, bat_moved, ball_moved, scoreboard_changed
+from .api import templates
 
 
-base_dir = path.dirname(__file__)
-templates = Jinja2Templates(directory=f"{base_dir}/templates", enable_async=True)
-staticfiles = StaticFiles(directory=f"{base_dir}/static")
-
-
-async def get_bat(player: str):
+async def get_bat(player: Literal["left", "right"]):
     context = {"player": player, "pos": state[player]["pos"]}
     return {
         "event": f"bat_{player}",

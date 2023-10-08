@@ -1,4 +1,5 @@
 import asyncio
+from typing import Literal
 
 from .types import StateDict
 
@@ -133,7 +134,7 @@ def process_keypress(key):
 def process_click(x: float, y: float):
     state["running"].set()
     trigger(scoreboard_changed)
-    player = "right" if x > 0.5 else "left"
+    player: Literal["left", "right"] = "right" if x > 0.5 else "left"
     pos = state[player]["pos"]
     if (y * 100) - (state[player]["len"] / 2) < pos:
         state[player]["pos"] = max(1, pos - 5)

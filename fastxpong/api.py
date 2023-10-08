@@ -1,10 +1,15 @@
+from os import path
 from contextlib import asynccontextmanager
 import asyncio
 from typing import cast
+from logging import getLogger
 
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import HTMLResponse
 from sse_starlette.sse import EventSourceResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+import requests
 
 from .game import (
     game_loop,
@@ -14,14 +19,36 @@ from .game import (
     scoreboard_changed,
     trigger,
 )
-from .render import render_state, templates, staticfiles
+
+logger = getLogger(__name__)
+base_dir = path.dirname(__file__)
+templates = Jinja2Templates(directory=f"{base_dir}/templates", enable_async=True)
+staticfiles = StaticFiles(directory=f"{base_dir}/static")
 
 
 @asynccontextmanager
 async def app_lifespan(app: FastAPI):
+    await asyncio.get_running_loop().run_in_executor(None, ensure_htmx)
     main_loop = asyncio.create_task(game_loop())
     yield
     main_loop.cancel()
+
+
+def ensure_htmx():
+    for expected, source in {
+        "htmx.min.js": "https://unpkg.com/htmx.org@1.9.6/dist/htmx.min.js",
+        "sse.js": "https://unpkg.com/htmx.org@1.9.6/dist/ext/sse.js",
+    }.items():
+        file_name = f"{staticfiles.directory}/{expected}"
+        if not path.exists(file_name):
+            logger.warning(
+                "Loading %(file_name)s from %(source)s",
+                {"file_name": file_name, "source": source},
+            )
+            resp = requests.get(source)
+            resp.raise_for_status()
+            with open(file_name, "wb") as f:
+                f.write(resp.content)
 
 
 app = FastAPI(lifespan=app_lifespan)
@@ -71,4 +98,6 @@ async def session_counter(async_generator):
 
 @app.get("/game-sse")
 async def get_game_sse(request: Request) -> EventSourceResponse:
+    from .render import render_state
+
     return EventSourceResponse(session_counter(render_state(request)))
